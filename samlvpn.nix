@@ -19,12 +19,15 @@ buildGoModule rec {
      cp ${src}/config.example.yaml $out/samlvpn.yaml
 
      substituteInPlace $out/samlvpn.yaml \
-       --replace '$HOME/.local/bin/openvpn-patched' "openvpn" \
-       --replace /usr/bin/sudo "sudo"
+       --replace '$HOME/.local/bin/openvpn-patched' "${openvpn}/bin/openvpn" \
+       --replace '$HOME/.config/openvpn-corporate.ovpn' '$HOME/.config/samlvpn/samlvpn.ovpn' \
+       --replace 'run-command: false' 'run-command: true' \
+       --replace "chromium" "google-chrome-stable"
 
     makeWrapper $out/bin/samlvpn $out/bin/saml-vpn \
       --run "cd $out" \
-      --prefix PATH : "${lib.makeBinPath [ openvpn xdg-utils ]}"
+      --prefix PATH : "${lib.makeBinPath [ openvpn xdg-utils ]}" \
+      --add-flags "-config $out/samlvpn.yaml"
   '';
 
 }
