@@ -8,11 +8,10 @@
       let pkgs = nixpkgs.legacyPackages.${system};
       in rec {
         packages = flake-utils.lib.flattenTree {
-          samlvpn = pkgs.callPackage ./samlvpn.nix {
+          samlvpn = pkgs.callPackage ./samlvpn.nix rec {
             openvpn = pkgs.callPackage ./openvpn.nix { };
             configOverrides = {
-              "$HOME/.local/bin/openvpn-patched" =
-                "${pkgs.openvpn}/bin/openvpn";
+              "$HOME/.local/bin/openvpn-patched" = "${openvpn}/bin/openvpn";
               "$HOME/.config/openvpn-corporate.ovpn" =
                 "$HOME/.config/samlvpn/samlvpn.ovpn";
               "run-command: false" = "run-command: true";
