@@ -1,14 +1,15 @@
-{ lib, buildGoModule, fetchFromGitHub, makeWrapper, openvpn, xdg-utils }:
+{ lib, buildGoModule, fetchFromGitHub, makeWrapper, openvpn, xdg-utils
+, configOverrides ? { }, samlvpnConfigPath ? null }:
 
 buildGoModule rec {
   pname = "samlvpn";
-  version = "d4b2b4b5588618491a64fa316c2103bfaaaa8095";
+  version = "86f8ff490bfcab9fde7a39a25a22d0a4062f2d38";
 
   src = fetchFromGitHub {
     owner = "donotnoot";
     repo = "samlvpn";
     rev = "${version}";
-    sha256 = "sha256-ren8vRbfwDhHjT6dF/RBBL1TNlDXM9gVPJ47CAqQLFE";
+    sha256 = "sha256-7RNY/WFRoBl8sVuwkGyVeEz/nn9pJliYhiAJQmJZRZs=";
   };
 
   vendorHash = "sha256-zvT9b1o+3ugfqifcRFpkbXWrZc/XBa/Q/1PR/g7P6W0=";
@@ -16,18 +17,29 @@ buildGoModule rec {
   nativeBuildInputs = [ makeWrapper ];
 
   postInstall = ''
-     cp ${src}/config.example.yaml $out/samlvpn.yaml
+    # If samlvpnConfigPath is null, use the default example config
+    if [ -z ${samlvpnConfigPath} ]; then
+      cp ${src}/config.example.yaml $out/samlvpn.yaml
+    else
+      cp ${samlvpnConfigPath} $out/samlvpn.yaml
+    fi
 
-     substituteInPlace $out/samlvpn.yaml \
-       --replace '$HOME/.local/bin/openvpn-patched' "${openvpn}/bin/openvpn" \
-       --replace '$HOME/.config/openvpn-corporate.ovpn' '$HOME/.config/samlvpn/samlvpn.ovpn' \
-       --replace 'run-command: false' 'run-command: true' \
-       --replace "chromium" "google-chrome-stable"
+    # Apply overrides from configOverrides
+    ${lib.concatMapStringsSep "\n" (keyValue:
+      let
+        key = keyValue.key;
+        value = keyValue.value;
+      in "substituteInPlace $out/samlvpn.yaml --replace '${key}' '${value}'")
+    (map (key: {
+      key = key;
+      value = configOverrides.${key};
+    }) (builtins.attrNames configOverrides))}
+
 
     makeWrapper $out/bin/samlvpn $out/bin/saml-vpn \
       --run "cd $out" \
       --prefix PATH : "${lib.makeBinPath [ openvpn xdg-utils ]}" \
       --add-flags "-config $out/samlvpn.yaml"
   '';
-
 }
+
