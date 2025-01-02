@@ -14,7 +14,7 @@
               "$HOME/.local/bin/openvpn-patched" =
                 "${pkgs.openvpn}/bin/openvpn";
               "$HOME/.config/openvpn-corporate.ovpn" =
-                "/etc/samlvpn/config.ovpn";
+                "$HOME/.config/samlvpn/samlvpn.ovpn";
               "run-command: false" = "run-command: true";
               "chromium" = "google-chrome-stable";
             };
