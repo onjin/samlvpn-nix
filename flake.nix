@@ -10,23 +10,14 @@
         packages = flake-utils.lib.flattenTree {
           samlvpn = pkgs.callPackage ./samlvpn.nix rec {
             openvpn = pkgs.callPackage ./openvpn.nix { };
-            configOverrides = {
-              "$HOME/.local/bin/openvpn-patched" = "${openvpn}/bin/openvpn";
-              "$HOME/.config/openvpn-corporate.ovpn" =
-                "$HOME/.config/samlvpn/samlvpn.ovpn";
-              "run-command: false" = "run-command: true";
-              "chromium" = "google-chrome-stable";
-            };
-            # samlvpnConfigPath = "/path/to/custom/samlvpn.yaml"; # Optional
-            samlvpnConfigPath = ""; # Optional
           };
           # you can override the default samlvpn package by using the following in your overlay:
           # {
           #   modifications = final: prev: {
           #     samlvpn = prev.samlvpn.override {
           #       configOverrides = {
-          #         'run-command: false' = 'run-command: true';
-          #         '$HOME/.config/openvpn-corporate.ovpn' = '/my/custom/path.ovpn';
+          #         run-command = "true";
+          #         openvpn-config-file = "$HOME/.config/custom/path/samlvpn.ovpn";
           #       };
           #     };
           #   };
